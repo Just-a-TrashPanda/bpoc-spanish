@@ -179,12 +179,15 @@ details>summary{cursor:pointer;font-weight:600;list-style-position:inside}
   <div class="wrap">
     <section class="panel deckbar" aria-label="Choose learning objectives">
       <div class="deckhead">
-        <h3>Learning objectives</h3>
+        <div class="seg" role="group" aria-label="Which terms" id="scopeSeg">
+          <button data-scope="test" id="scopeTest">Test terms</button><button data-scope="all" id="scopeAll">All terms</button>
+        </div>
         <span class="small muted tabnum" id="deckCount"></span>
       </div>
+      <h3>Learning objectives</h3>
       <div class="chips" id="unitChips"></div>
       <div class="row between">
-        <label class="toggle"><input type="checkbox" id="caloToggle"> Include Caló street slang (26.4 instructor note)</label>
+        <label class="toggle" id="caloLabel"><input type="checkbox" id="caloToggle"> Include Caló street slang (26.4 instructor note)</label>
         <label class="toggle small muted">Spanish speed
           <select id="rateSel" style="width:auto;padding:4px 8px">
             <option value="0.65">Slow</option><option value="0.85" selected>Normal</option><option value="1">Fast</option>
@@ -314,7 +317,7 @@ const RAW = [
   ['Please repeat','Repita, por favor',{ea:['repeat please']}]
  ]],
  ['26.5','Traffic & pedestrian stops',[
-  ['Name','Nombre'],['Place of birth','Lugar de nacimiento'],['Age','Edad'],['Occupation','Ocupación'],
+  ['Name','Nombre'],['Place of birth','Lugar de nacimiento'],['Date of birth','Fecha de nacimiento',{n:'From the class test list (not printed in the PDF).'}],['Age','Edad'],['Occupation','Ocupación'],
   ['Address','Dirección',{a:['domicilio']}],['City','Ciudad'],['Zip code','Zona postal',{a:['código postal']}],
   ['Phone number','Número de teléfono'],['Place of work','Lugar donde trabaja',{a:['lugar de trabajo'],ea:['workplace','where do you work']}],
   ['Sign here','Firme aquí'],['Please','Por favor'],['Your signature','Su firma'],
@@ -346,9 +349,9 @@ const RAW = [
  ]],
  ['26.7','Command & control',[
   ['Police! Don’t move!','¡Policía! No se mueva',{ea:['police dont move']}],
-  ['Drop the weapon','Suelte el arma',{a:['suelta el arma'],n:'PDF: “suelta el arma” (informal tú). Formal usted: suelte el arma. Both work under stress.'}],
+  ['Drop the weapon','Suelta el arma',{a:['suelte el arma'],n:'Class key and PDF use “suelta” (informal). Formal “suelte el arma” is also accepted.'}],
   ['Hands in the air','Manos arriba',{ea:['hands up']}],
-  ['Turn around, slowly','Voltéese despacio',{a:['voltéese despaciamente','dese la vuelta despacio','date la vuelta despacio'],ea:['turn around slowly'],n:'PDF prints “despaciamente”, which isn’t a standard word. Say “despacio”.'}],
+  ['Turn around, slowly','Voltéese, despacito',{a:['voltéese despacio','voltéese despaciamente','dese la vuelta despacio','date la vuelta despacio'],ea:['turn around slowly'],n:'Class key: “despacito” (nice and slow). PDF prints “despaciamente”, which isn’t a standard word. “Despacio” is also accepted.'}],
   ['Stop!','¡Alto!'],
   ['Spread your feet','Separe los pies',{a:['sepáre las pies'],n:'PDF prints “sepáre las pies”; correct: separe los pies (pies is masculine).'}]
  ]],
@@ -361,7 +364,7 @@ const RAW = [
   ['Get on the floor (inside)','Acuéstese en el piso',{ea:['get on the floor','lie on the floor']}],
   ['Get on the ground (outside)','Acuéstese en el suelo',{ea:['get on the ground','lie on the ground']}],
   ['Arms straight out from your body','Extienda los brazos al lado',{ea:['arms out','extend your arms']}],
-  ['Cross your feet','Cruce los pies',{a:['cruza los pies'],n:'PDF: “cruza los pies” (informal). Formal: cruce los pies.'}],
+  ['Cross your feet','Cruza los pies',{a:['cruce los pies'],n:'Class key and PDF use “cruza” (informal). Formal “cruce los pies” is also accepted.'}],
   ['Don’t look at me','No me mire']
  ]],
  ['26.8','Handcuffing',[
@@ -370,10 +373,33 @@ const RAW = [
  ]]
 ];
 const DANGER_CATS = new Set(['Danger words','Weapons','Command & control']);
+// The 50 terms on the class Spanish test (units 26.5–26.8), matched by English text
+const TEST_EN = new Set([
+  'Who called the police?','Did you call the police?','Who is the victim?','Calm down','Who saw what happened?',
+  'I speak only a little Spanish','Do you speak English?','I don’t understand','Do you understand?','How may I help you?','Please repeat',
+  'Name','Place of birth','Date of birth','Age','Occupation','Address','City','Zip code','Phone number','Sign here','Please','Your signature',
+  'Insurance','Driver’s license','Get out of the car',
+  'Is anyone injured?','Are you alright?','Stay calm','Don’t move your head','Do you need an ambulance?','Turn off the motor',
+  'Get out of the car, please','Who was driving?','Were you wearing seat belts?','Do you want me to call a tow truck?','Have you been drinking or taking any drugs?',
+  'Police! Don’t move!','Drop the weapon','Hands in the air','Turn around, slowly','Stop!','Spread your feet',
+  'Get up','Sit down','You are under arrest','Get on the floor (inside)','Get on the ground (outside)','Cross your feet','Don’t look at me'
+]);
+// Extra answers your class key accepts
+const TEST_EXTRA = {
+  'I speak only a little Spanish':{a:['hablo poquito español','poquito español','hablo solo poquito español'],k:'Class key also accepts “poquito español”.'},
+  'How may I help you?':{a:['ayuda sí o no','ayuda'],k:'Class key shortcut: “¿Ayuda? sí o no”.'},
+  'Driver’s license':{a:['licencia'],k:'Class key also accepts just “licencia”.'},
+  'Turn off the motor':{a:['apague motor'],k:'Class key also accepts “apague motor”.'},
+  'Who was driving?':{a:['manejando sí o no','manejanda sí o no'],k:'Class key shortcut: “¿Manejando? sí o no”.'},
+  'Were you wearing seat belts?':{a:['cinturón sí o no','cinturón'],k:'Class key shortcut: “¿Cinturón? sí o no”.'},
+  'Do you want me to call a tow truck?':{a:['wreka sí o no','wreka','grúa sí o no'],k:'Class key shortcut: “¿Wreka? sí o no” (border slang for a wrecker).'},
+  'Have you been drinking or taking any drugs?':{a:['alcohol sí o no drogas sí o no','alcohol sí o no y drogas sí o no'],k:'Class key shortcut: “¿Alcohol? sí o no. ¿Drogas? sí o no.”'}
+};
 const slug = s => s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');
 const ITEMS = [];
 for (const [u,cat,list] of RAW) for (const [en,es,o={}] of list) {
-  ITEMS.push({id:u+'-'+slug(cat)+'-'+slug(en), u, cat, en, es, a:o.a||[], ea:o.ea||[], n:o.n||'', s:o.s||'', g:o.g||'', calo:cat==='Caló street slang'});
+  const t = ['26.5','26.6','26.7','26.8'].includes(u) && TEST_EN.has(en); const x = (t && TEST_EXTRA[en]) || {};
+  ITEMS.push({id:u+'-'+slug(cat)+'-'+slug(en), u, cat, en, es, a:[...(o.a||[]), ...(x.a||[])], ea:o.ea||[], n:[o.n, x.k].filter(Boolean).join(' '), s:o.s||'', g:o.g||'', calo:cat==='Caló street slang', t});
 }
 
 /* ============ Text helpers ============ */
@@ -490,7 +516,7 @@ const store = {
   get(k,d){ try{ const v=localStorage.getItem('bpoc26.'+k); return v?JSON.parse(v):d; }catch(e){ return d; } },
   set(k,v){ try{ localStorage.setItem('bpoc26.'+k, JSON.stringify(v)); }catch(e){} }
 };
-const settings = Object.assign({units:Object.keys(UNITS), calo:true, rate:0.85}, store.get('settings',{}));
+const settings = Object.assign({units:Object.keys(UNITS), calo:true, rate:0.85, scope:'test'}, store.get('settings',{}));
 let stats = store.get('stats',{});
 function record(item, ok){
   const s = stats[item.id] || {c:0,w:0};
@@ -568,7 +594,7 @@ const aiAvailable = () => !!sample && !aiOff;
 /* ============ Deck ============ */
 function deck(){
   const seen=new Set();
-  return ITEMS.filter(it => settings.units.includes(it.u) && (settings.calo || !it.calo)).filter(it=>{
+  return ITEMS.filter(it => settings.units.includes(it.u) && (settings.scope==='test' ? it.t : (settings.calo || !it.calo))).filter(it=>{
     const k=norm(it.en.replace(/\([^)]*\)/g,''))+'|'+norm(it.es); if(seen.has(k)) return false; seen.add(k); return true;
   });
 }
@@ -602,7 +628,14 @@ const view = document.getElementById('view');
 /* ============ Deck bar ============ */
 function renderDeckBar(){
   const chips = document.getElementById('unitChips');
-  chips.innerHTML = Object.entries(UNITS).map(([u,name])=>`<button class="chip" aria-pressed="${settings.units.includes(u)}" data-unit="${u}"><span class="mono">${u}</span>${esc(name)}</button>`).join('');
+  const inScope = it => settings.scope==='test' ? it.t : (settings.calo || !it.calo);
+  chips.innerHTML = Object.entries(UNITS).map(([u,name])=>{ const n=ITEMS.filter(it=>it.u===u && inScope(it)).length;
+    return `<button class="chip" aria-pressed="${settings.units.includes(u)}" data-unit="${u}" ${n?'':'style="opacity:.5"'}><span class="mono">${u}</span>${esc(name)}<span class="mono">${n}</span></button>`; }).join('');
+  const testN = ITEMS.filter(it=>it.t).length, allN = ITEMS.filter(it=>settings.calo || !it.calo).length;
+  document.getElementById('scopeTest').textContent = `Test terms (${testN})`;
+  document.getElementById('scopeAll').textContent = `All terms (${allN})`;
+  document.querySelectorAll('#scopeSeg [data-scope]').forEach(b=>b.setAttribute('aria-pressed', String(b.dataset.scope===settings.scope)));
+  document.getElementById('caloLabel').hidden = settings.scope==='test';
   document.getElementById('caloToggle').checked = settings.calo;
   document.getElementById('rateSel').value = String(settings.rate);
   const d = deck();
@@ -613,6 +646,10 @@ document.getElementById('unitChips').addEventListener('click', e=>{
   const u=b.dataset.unit; const set=new Set(settings.units);
   set.has(u)?set.delete(u):set.add(u); if(!set.size) set.add(u);
   settings.units=Object.keys(UNITS).filter(k=>set.has(k)); store.set('settings',settings); deckChanged();
+});
+document.getElementById('scopeSeg').addEventListener('click', e=>{
+  const b=e.target.closest('[data-scope]'); if(!b) return;
+  settings.scope=b.dataset.scope; store.set('settings',settings); deckChanged();
 });
 document.getElementById('caloToggle').addEventListener('change', e=>{ settings.calo=e.target.checked; store.set('settings',settings); deckChanged(); });
 document.getElementById('rateSel').addEventListener('change', e=>{ settings.rate=parseFloat(e.target.value); store.set('settings',settings); });
@@ -626,6 +663,10 @@ document.querySelector('nav').addEventListener('click', e=>{
 });
 function render(){
   document.querySelectorAll('nav [data-tab]').forEach(b=>b.setAttribute('aria-selected', String(b.dataset.tab===tab)));
+  if(tab!=='progress' && !deck().length){
+    view.innerHTML = `<div class="panel empty"><p><strong>No terms in this selection.</strong></p><p class="small">The test terms come from 26.5–26.8. Turn on one of those objectives, or switch to All terms.</p></div>`;
+    return;
+  }
   ({study:renderStudy, test:renderTest, speak:renderSpeak, progress:renderProgress})[tab]();
 }
 
@@ -650,7 +691,7 @@ function renderStudy(){
     </div>
   </div>
   <article class="card ${danger?'danger':''}" aria-live="polite">
-    <div class="cardmeta"><span>LO ${it.u} · ${esc(it.cat)}</span><span class="tabnum">${st.i+1} / ${st.order.length} · ${statusLabel(it)}</span></div>
+    <div class="cardmeta"><span>LO ${it.u} · ${esc(it.cat)}${testTag(it)}</span><span class="tabnum">${st.i+1} / ${st.order.length} · ${statusLabel(it)}</span></div>
     <div class="cardbody">
       ${frontEs ? esBlock(it) : `<p class="term en">${esc(it.en)}</p>`}
       ${back ? `<div class="divider"></div>${frontEs ? `<p class="term en">${esc(it.en)}</p>` : esBlock(it)}${extras(it)}` : `<p class="small muted">Say it out loud, then flip to check.</p>`}
@@ -680,6 +721,7 @@ function renderStudy(){
   const eb=view.querySelector('#explainBtn'); if(eb) eb.onclick=()=>explain(it, eb);
   view.querySelectorAll('[data-play]').forEach(b=>b.onclick=()=>speak(b.dataset.play,'es'));
 }
+const testTag = it => (it.t && settings.scope==='all') ? ' · <span style="color:var(--accent)">On the test</span>' : '';
 const statusLabel = it => ({new:'New', seen:'Practiced', weak:'Needs work', mastered:'Mastered'})[status(it)];
 const esBlock = it => `<p class="term">${esc(it.es)}</p><span class="phon">${esc(it.ph)}</span>`;
 const extras = it => `${it.s?`<p class="slang"><b>Street / slang</b>${esc(it.s)}</p>`:''}${it.a.length?`<p class="slang"><b>Also accepted</b>${esc(it.a.filter(a=>!/^\d+$/.test(a)).join(', '))}</p>`:''}${it.n?`<p class="note">${esc(it.n)}</p>`:''}`;
@@ -687,7 +729,7 @@ function refList(d){
   let html='', lastCat='';
   for(const it of d){
     if(it.cat!==lastCat){ if(lastCat) html+='</tbody></table></div>'; html+=`<h3 style="margin-top:8px">${it.u} · ${esc(it.cat)}</h3><div class="tablewrap"><table><thead><tr><th>English</th><th>Spanish</th><th></th></tr></thead><tbody>`; lastCat=it.cat; }
-    html+=`<tr><td>${esc(it.en)}</td><td><strong>${esc(it.es)}</strong><br><span class="phon">${esc(it.ph)}</span></td><td><button class="iconbtn" data-play="${esc(it.es)}" aria-label="Hear ${esc(it.es)}">${IC.spk}</button></td></tr>`;
+    html+=`<tr><td>${esc(it.en)}${(it.t&&settings.scope==='all')?'<br><span class="pill neutral">On the test</span>':''}</td><td><strong>${esc(it.es)}</strong><br><span class="phon">${esc(it.ph)}</span></td><td><button class="iconbtn" data-play="${esc(it.es)}" aria-label="Hear ${esc(it.es)}">${IC.spk}</button></td></tr>`;
   }
   return html + (lastCat?'</tbody></table></div>':'');
 }
@@ -767,7 +809,7 @@ function testQuestion(){
   <div class="row between"><h2>Test</h2><span class="small muted tabnum">Question ${t.i+1} of ${t.qs.length} · ${t.results.filter(r=>r.ok).length} correct</span></div>
   <div class="progressline"><i style="width:${(t.i/t.qs.length)*100}%"></i></div>
   <article class="card ${DANGER_CATS.has(it.cat)?'danger':''}">
-    <div class="cardmeta"><span>LO ${it.u} · ${esc(it.cat)}</span><span>${q.fmt==='mc'?'Multiple choice':'Typed'}</span></div>
+    <div class="cardmeta"><span>LO ${it.u} · ${esc(it.cat)}${testTag(it)}</span><span>${q.fmt==='mc'?'Multiple choice':'Typed'}</span></div>
     <div class="cardbody">${prompt}${answerUI}${fb}</div>
     <div class="cardfoot">
       ${a?`<button class="btn" id="hear">${IC.spk} Hear it</button><button class="btn primary grow" id="nextQ">${t.i+1<t.qs.length?'Next question':'See results'}</button>`
@@ -863,7 +905,7 @@ function speakCard(){
   <div class="row between"><h2>${esc(m.label)}</h2><span class="small muted tabnum">${s.i+1} of ${s.qs.length}</span></div>
   <div class="progressline"><i style="width:${(s.i/s.qs.length)*100}%"></i></div>
   <article class="card ${DANGER_CATS.has(it.cat)?'danger':''}">
-    <div class="cardmeta"><span>LO ${it.u} · ${esc(it.cat)}</span><span>Answer in ${m.ansLang==='es'?'Spanish':'English'}</span></div>
+    <div class="cardmeta"><span>LO ${it.u} · ${esc(it.cat)}${testTag(it)}</span><span>Answer in ${m.ansLang==='es'?'Spanish':'English'}</span></div>
     <div class="cardbody">
       ${prompt}
       <button class="btn" id="playPrompt">${IC.spk} Play prompt</button>
@@ -1000,11 +1042,14 @@ function renderProgress(){
   });
   const weak = all.filter(x=>status(x)==='weak').sort((a,b)=>(stats[b.id].w-stats[b.id].c)-(stats[a.id].w-stats[a.id].c));
   const tot = all.length, mast = all.filter(x=>status(x)==='mastered').length;
+  const tests = ITEMS.filter(x=>x.t), tm = tests.filter(x=>status(x)==='mastered').length, ts = tests.filter(x=>['seen','weak'].includes(status(x))).length;
   view.innerHTML = `
   <div class="row between"><h2>Your progress</h2><span class="small muted">Saved on this device only</span></div>
   <div class="panel">
     <div class="row" style="gap:20px;align-items:flex-end"><div class="score tabnum">${mast}</div><p class="muted">of ${tot} terms mastered<br><span class="small">Mastered = answered right at least twice, most recently right.</span></p></div>
     <div class="legend"><span style="--c:var(--good)">Mastered</span><span style="--c:var(--accent)">Practiced</span><span style="--c:var(--line)">Not started</span></div>
+    <div class="unitrow"><span><strong>Test terms</strong></span><span class="small tabnum"><strong>${tm}/${tests.length}</strong></span>
+      <div class="bar" role="img" aria-label="${tm} mastered, ${ts} practiced of ${tests.length} test terms"><i class="m" style="width:${tm/tests.length*100}%"></i><i class="s" style="width:${ts/tests.length*100}%"></i></div></div>
     ${units.map(x=>`<div class="unitrow"><span><span class="mono small muted">${x.u}</span> ${esc(x.name)}</span><span class="small muted tabnum">${x.m}/${x.total}</span>
       <div class="bar" role="img" aria-label="${x.m} mastered, ${x.sn} practiced of ${x.total}"><i class="m" style="width:${x.total?x.m/x.total*100:0}%"></i><i class="s" style="width:${x.total?x.sn/x.total*100:0}%"></i></div></div>`).join('')}
   </div>
