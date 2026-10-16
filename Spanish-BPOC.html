@@ -1,0 +1,1033 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+</head>
+<body>
+<title>BPOC Spanish Trainer</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Public+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: sticky duty-band header with tabs, one centered 760px work column; every screen is a "field card". */
+:root{
+  --bg:#EDF0F4; --surface:#FFFFFF; --surface-2:#F6F8FA; --ink:#13213A; --muted:#5A6577; --line:#D3D9E2;
+  --accent:#8F6410; --accent-soft:#F4E9D3; --accent-ink:#FFFFFF;
+  --band:#13213A; --band-ink:#EEF2F8; --band-muted:#9FB0C8;
+  --good:#1D7543; --good-soft:#DFF1E6; --bad:#B3261E; --bad-soft:#F8E1DF; --warn:#9A5B00; --warn-soft:#FBEBD2;
+  --danger-stripe:#B3261E;
+  --display:"Barlow Condensed","Arial Narrow",Arial,sans-serif;
+  --body:"Public Sans",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0D1420; --surface:#152033; --surface-2:#1A273D; --ink:#E6EBF2; --muted:#9AA6B8; --line:#26334B;
+  --accent:#E2B04F; --accent-soft:#3A2F17; --accent-ink:#1A1405;
+  --band:#0A101B; --band-ink:#EEF2F8; --band-muted:#8D9CB3;
+  --good:#5BC68A; --good-soft:#163323; --bad:#F2786D; --bad-soft:#3A1A19; --warn:#F0AA4E; --warn-soft:#3A2A12;
+  --danger-stripe:#F2786D; color-scheme:dark }}
+:root[data-theme="dark"]{
+  --bg:#0D1420; --surface:#152033; --surface-2:#1A273D; --ink:#E6EBF2; --muted:#9AA6B8; --line:#26334B;
+  --accent:#E2B04F; --accent-soft:#3A2F17; --accent-ink:#1A1405;
+  --band:#0A101B; --band-ink:#EEF2F8; --band-muted:#8D9CB3;
+  --good:#5BC68A; --good-soft:#163323; --bad:#F2786D; --bad-soft:#3A1A19; --warn:#F0AA4E; --warn-soft:#3A2A12;
+  --danger-stripe:#F2786D; color-scheme:dark }
+
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:15px;line-height:1.5}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--band)}
+button,input,select{font:inherit;color:inherit}
+.wrap{max-width:760px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+
+header{background:var(--band);color:var(--band-ink);position:sticky;top:env(safe-area-inset-top,0px);z-index:5}
+header .wrap{padding-block:14px 0;display:flex;flex-direction:column;gap:10px}
+.brand{display:flex;align-items:baseline;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--band-muted)}
+h1{font-family:var(--display);font-weight:700;font-size:28px;letter-spacing:.02em;text-transform:uppercase;margin:0;line-height:1}
+h1 span{color:var(--accent)}
+nav{display:flex;gap:2px;overflow-x:auto;scrollbar-width:none}
+nav button{background:none;border:0;color:var(--band-muted);padding:10px 14px 12px;font-family:var(--display);font-size:17px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;cursor:pointer;border-bottom:3px solid transparent;white-space:nowrap}
+nav button[aria-selected="true"]{color:var(--band-ink);border-bottom-color:var(--accent)}
+nav button:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
+
+main .wrap{padding-block:18px 48px;display:flex;flex-direction:column;gap:16px}
+h2{font-family:var(--display);font-size:22px;font-weight:700;letter-spacing:.03em;text-transform:uppercase;margin:0;text-wrap:balance}
+h3{font-family:var(--display);font-size:17px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;margin:0;color:var(--muted)}
+p{margin:0}
+.muted{color:var(--muted)}
+.small{font-size:13px}
+.mono{font-family:var(--mono)}
+
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:16px;display:flex;flex-direction:column;gap:12px}
+.deckbar{display:flex;flex-direction:column;gap:10px}
+.deckhead{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{border:1px solid var(--line);background:var(--surface-2);border-radius:999px;padding:6px 12px;font-size:13px;cursor:pointer;display:inline-flex;gap:6px;align-items:baseline}
+.chip .mono{font-size:11px;color:var(--muted)}
+.chip[aria-pressed="true"]{background:var(--accent-soft);border-color:var(--accent);color:var(--ink)}
+.chip[aria-pressed="true"] .mono{color:var(--accent)}
+.chip:focus-visible,.btn:focus-visible,.opt:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+.btn{border:1px solid var(--line);background:var(--surface);border-radius:8px;padding:9px 14px;cursor:pointer;font-weight:600;font-size:14px;display:inline-flex;align-items:center;gap:6px;justify-content:center}
+.btn:hover{border-color:var(--muted)}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.btn.ghost{background:none;border-color:transparent}
+.btn.big{padding:14px 20px;font-size:16px}
+.btn[disabled]{opacity:.5;cursor:not-allowed}
+.btn svg{width:16px;height:16px;flex:none}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.row.between{justify-content:space-between}
+.grow{flex:1 1 auto}
+
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:8px;overflow:hidden;flex-wrap:wrap}
+.seg button{border:0;background:var(--surface);padding:8px 12px;cursor:pointer;font-size:13px;font-weight:600;border-right:1px solid var(--line)}
+.seg button:last-child{border-right:0}
+.seg button[aria-pressed="true"]{background:var(--ink);color:var(--surface)}
+.field{display:flex;flex-direction:column;gap:6px}
+.field>label,.lbl{font-family:var(--mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+select,input[type=text]{border:1px solid var(--line);background:var(--surface-2);border-radius:8px;padding:10px 12px;width:100%;max-width:100%}
+input[type=text]{font-size:17px}
+
+/* Field card */
+.card{background:var(--surface);border:1px solid var(--line);border-radius:12px;overflow:hidden;display:flex;flex-direction:column}
+.card.danger{border-top:4px solid var(--danger-stripe)}
+.cardmeta{display:flex;justify-content:space-between;gap:8px;padding:10px 16px;border-bottom:1px dashed var(--line);font-family:var(--mono);font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);flex-wrap:wrap}
+.cardbody{padding:22px 16px;display:flex;flex-direction:column;gap:12px;align-items:flex-start;min-height:200px}
+.term{font-family:var(--display);font-weight:600;font-size:clamp(28px,7vw,40px);line-height:1.05;text-wrap:balance;margin:0}
+.term.en{font-family:var(--body);font-weight:600;font-size:clamp(22px,5.5vw,30px);line-height:1.2}
+.phon{font-family:var(--mono);font-size:14px;color:var(--accent);background:var(--accent-soft);border-radius:6px;padding:3px 8px}
+.note{font-size:13px;color:var(--muted);border-left:3px solid var(--line);padding-left:10px}
+.slang{font-size:13px}
+.slang b{font-family:var(--mono);font-weight:500;font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin-right:4px}
+.divider{width:100%;border-top:1px solid var(--line)}
+.cardfoot{display:flex;gap:8px;padding:12px 16px;border-top:1px solid var(--line);background:var(--surface-2);flex-wrap:wrap;align-items:center}
+
+.opts{display:grid;grid-template-columns:1fr 1fr;gap:8px;width:100%}
+@media (max-width:520px){.opts{grid-template-columns:1fr}}
+.opt{text-align:left;border:1px solid var(--line);background:var(--surface-2);border-radius:8px;padding:12px 14px;cursor:pointer;font-size:15px;font-weight:500;display:flex;gap:10px;align-items:baseline;min-width:0}
+.opt .k{font-family:var(--mono);font-size:11px;color:var(--muted);flex:none}
+.opt.right{background:var(--good-soft);border-color:var(--good)}
+.opt.wrong{background:var(--bad-soft);border-color:var(--bad)}
+.opt[disabled]{cursor:default}
+
+.verdict{display:flex;gap:10px;align-items:flex-start;border-radius:8px;padding:10px 12px;width:100%;font-size:14px}
+.verdict.ok{background:var(--good-soft);color:var(--ink)}
+.verdict.no{background:var(--bad-soft)}
+.verdict.close{background:var(--warn-soft)}
+.pill{font-family:var(--mono);font-size:11px;font-weight:500;letter-spacing:.06em;text-transform:uppercase;border-radius:999px;padding:2px 8px;flex:none;white-space:nowrap}
+.pill.ok{background:var(--good);color:var(--surface)}
+.pill.no{background:var(--bad);color:var(--surface)}
+.pill.close{background:var(--warn);color:var(--surface)}
+.pill.neutral{background:var(--surface-2);color:var(--muted);border:1px solid var(--line)}
+
+.progressline{height:4px;background:var(--line);border-radius:2px;overflow:hidden;width:100%}
+.progressline i{display:block;height:100%;background:var(--accent)}
+
+.coach{width:100%;border:1px solid var(--line);border-radius:10px;padding:12px 14px;background:var(--surface-2);display:flex;flex-direction:column;gap:8px}
+.coach ul{margin:0;padding-left:18px;display:flex;flex-direction:column;gap:4px}
+.coach .head{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+
+.mic{width:72px;height:72px;border-radius:50%;border:2px solid var(--accent);background:var(--accent-soft);color:var(--accent);cursor:pointer;display:grid;place-items:center;flex:none}
+.mic svg{width:30px;height:30px}
+.mic.live{background:var(--bad);border-color:var(--bad);color:var(--surface);animation:pulse 1.2s ease-in-out infinite}
+@keyframes pulse{50%{box-shadow:0 0 0 10px transparent}0%{box-shadow:0 0 0 0 var(--bad-soft)}}
+@media (prefers-reduced-motion:reduce){.mic.live{animation:none}}
+.heard{font-family:var(--mono);font-size:14px;min-height:1.5em}
+
+table{border-collapse:collapse;width:100%;font-size:14px}
+th{font-family:var(--mono);font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);text-align:left;font-weight:500;padding:6px 8px;border-bottom:1px solid var(--line)}
+td{padding:8px;border-bottom:1px solid var(--line);vertical-align:top}
+td .phon{font-size:12px;padding:1px 6px;display:inline-block;margin-top:3px}
+.tablewrap{overflow-x:auto}
+details>summary{cursor:pointer;font-weight:600;list-style-position:inside}
+.iconbtn{border:1px solid var(--line);background:var(--surface);border-radius:6px;width:32px;height:32px;display:grid;place-items:center;cursor:pointer;color:var(--accent)}
+.iconbtn svg{width:15px;height:15px}
+
+.score{font-family:var(--display);font-size:64px;font-weight:700;line-height:1;font-variant-numeric:tabular-nums}
+.unitrow{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:4px 12px;align-items:center}
+.bar{height:8px;border-radius:4px;background:var(--line);overflow:hidden;display:flex;grid-column:1/-1}
+.bar i{display:block;height:100%}
+.bar .m{background:var(--good)}.bar .s{background:var(--accent)}
+.legend{display:flex;gap:14px;flex-wrap:wrap;font-size:12px;color:var(--muted)}
+.legend span::before{content:"";display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:5px;vertical-align:-1px;background:var(--c)}
+.tabnum{font-variant-numeric:tabular-nums}
+.hint{font-size:13px;color:var(--muted);background:var(--surface-2);border:1px dashed var(--line);border-radius:8px;padding:10px 12px}
+.toggle{display:inline-flex;gap:8px;align-items:center;font-size:14px;cursor:pointer}
+.toggle input{width:18px;height:18px;accent-color:var(--accent)}
+.empty{padding:28px 16px;text-align:center;color:var(--muted)}
+</style>
+
+<header>
+  <div class="wrap">
+    <div class="brand">
+      <div>
+        <div class="eyebrow">TCOLE BPOC · Chapter 26 · LO 26.3–26.8</div>
+        <h1>Tactical Spanish <span>Trainer</span></h1>
+      </div>
+    </div>
+    <nav role="tablist" aria-label="Sections">
+      <button role="tab" id="tab-study" data-tab="study" aria-selected="true">Study</button>
+      <button role="tab" id="tab-test" data-tab="test" aria-selected="false">Test</button>
+      <button role="tab" id="tab-speak" data-tab="speak" aria-selected="false">Speak</button>
+      <button role="tab" id="tab-progress" data-tab="progress" aria-selected="false">Progress</button>
+    </nav>
+  </div>
+</header>
+
+<main>
+  <div class="wrap">
+    <section class="panel deckbar" aria-label="Choose learning objectives">
+      <div class="deckhead">
+        <h3>Learning objectives</h3>
+        <span class="small muted tabnum" id="deckCount"></span>
+      </div>
+      <div class="chips" id="unitChips"></div>
+      <div class="row between">
+        <label class="toggle"><input type="checkbox" id="caloToggle"> Include Caló street slang (26.4 instructor note)</label>
+        <label class="toggle small muted">Spanish speed
+          <select id="rateSel" style="width:auto;padding:4px 8px">
+            <option value="0.65">Slow</option><option value="0.85" selected>Normal</option><option value="1">Fast</option>
+          </select>
+        </label>
+      </div>
+      <p class="small muted" id="ttsNote" hidden></p>
+    </section>
+    <div id="view"></div>
+  </div>
+</main>
+
+<script>
+/* ============ DATA: Units 26.3–26.8, BPOC Ch. 26 (rev. Sept 2025) ============ */
+const UNITS = {
+  '26.3':'Danger & weapons',
+  '26.4':'Questions, family & descriptions',
+  '26.5':'Interviews & traffic stops',
+  '26.6':'Accident investigation',
+  '26.7':'Command & control',
+  '26.8':'Arrests & handcuffing'
+};
+// item: [english, spanish, {a: other accepted Spanish, ea: other accepted English, n: note, s: slang, g: synonym group}]
+const RAW = [
+ ['26.3','Danger words',[
+  ['Disarm him','Desármalo',{a:['desármala']}],
+  ['Jump him','Bríncale'],
+  ['Shoot him/her','Dispárale',{a:['tírale','despárale'],n:'PDF prints “despárale”; standard spelling is dispárale. Also: tírale.',g:'shoot'}],
+  ['Beat him up','Golpéalo',{a:['golpéala'],n:'Golpéala = beat her up.'}],
+  ['Take his/her gun','Quítale la pistola',{a:['agarra el arma','quíale la pistola'],s:'el cohete (the gun)',n:'PDF prints “quíale”; the verb is quitar → quítale. Also: agarra el arma.'}],
+  ['Hit him/her','Pégale',{s:'chingaso (a punch)'}],
+  ['Kick him','Patéalo',{a:['pataléalo','patéala'],n:'PDF prints “pataléalo (pataléla)”. Common form: patéalo / patéala.'}],
+  ['Run','Córrele',{a:['dale gas','arráncate'],s:'dale gas, arráncate'}],
+  ['Stab him','Pícalo',{a:['córtalo','pícala','córtala'],n:'Also córtalo (cut him). Feminine: pícala / córtala.'}]
+ ]],
+ ['26.3','Weapons',[
+  ['Pistol','Pistola',{a:['arma','cohete','cuete','quete'],s:'cohete, quete',g:'gun'}],
+  ['Rifle','Rifle'],
+  ['Shotgun','Escopeta'],
+  ['Scissors','Tijeras'],
+  ['Shoot (command)','Dispara',{a:['tira'],ea:['shoot'],n:'Also: tira.',g:'shoot'}],
+  ['Knife','Cuchillo',{a:['navaja','filero'],s:'filero',g:'knife'}],
+  ['Bottle','Botella']
+ ]],
+ ['26.4','Question words',[
+  ['What?','¿Qué?'],['How?','¿Cómo?'],['Why?','¿Por qué?'],['When?','¿Cuándo?'],['Where?','¿Dónde?'],
+  ['How many?','¿Cuántos?',{a:['cuántas'],n:'Cuántas for feminine nouns.'}],
+  ['Which?','¿Cuál?'],['Who?','¿Quién?'],
+  ['Whose?','¿De quién?',{a:['de quiénes']}]
+ ]],
+ ['26.4','Family',[
+  ['Aunt','Tía'],['Boyfriend','Novio'],['Brother','Hermano'],['Brother-in-law','Cuñado'],['Children','Hijos'],
+  ['Daughter','Hija'],['Father','Padre',{a:['papá']}],['Fiancé','Prometido',{a:['prometida'],ea:['fiancee','fiance'],n:'Prometida = fiancée.'}],
+  ['Girlfriend','Novia'],['Grandson / granddaughter','Nieto',{a:['nieta','nieto nieta'],ea:['grandson','granddaughter','grandchild']}],
+  ['Husband','Esposo'],['Wife','Esposa'],['Mother','Madre',{a:['mamá']}],['Parents','Padres'],['Relatives','Parientes'],
+  ['Sister','Hermana'],['Sister-in-law','Cuñada'],['Son','Hijo'],['Stepfather','Padrastro'],['Stepmother','Madrastra']
+ ]],
+ ['26.4','Addressing adults',[
+  ['Sir / Mr. (adult male)','Señor',{ea:['sir','mr','mister','man','male']}],
+  ['Ma’am / Mrs. (married, divorced or widowed woman)','Señora',{ea:['maam','ma am','mrs','madam','married woman','woman']}],
+  ['Miss (unmarried woman)','Señorita',{ea:['miss','young lady','unmarried woman']}]
+ ]],
+ ['26.4','Numbers',[
+  ['0 (zero)','Cero',{a:['0'],ea:['0','zero']}],['1 (one)','Uno',{a:['1'],ea:['1','one']}],['2 (two)','Dos',{a:['2'],ea:['2','two']}],
+  ['3 (three)','Tres',{a:['3'],ea:['3','three']}],['4 (four)','Cuatro',{a:['4'],ea:['4','four']}],['5 (five)','Cinco',{a:['5'],ea:['5','five']}],
+  ['6 (six)','Seis',{a:['6'],ea:['6','six']}],['7 (seven)','Siete',{a:['7'],ea:['7','seven']}],['8 (eight)','Ocho',{a:['8'],ea:['8','eight']}],
+  ['9 (nine)','Nueve',{a:['9'],ea:['9','nine']}],['10 (ten)','Diez',{a:['10'],ea:['10','ten']}],['11 (eleven)','Once',{a:['11'],ea:['11','eleven']}],
+  ['12 (twelve)','Doce',{a:['12'],ea:['12','twelve']}],['13 (thirteen)','Trece',{a:['13'],ea:['13','thirteen']}],
+  ['14 (fourteen)','Catorce',{a:['14'],ea:['14','fourteen']}],['15 (fifteen)','Quince',{a:['15'],ea:['15','fifteen']}],
+  ['16 (sixteen)','Dieciséis',{a:['16','diez y seis'],ea:['16','sixteen'],n:'PDF writes “diez y seis” (and mislabels the row as 25). Modern spelling: dieciséis.'}],
+  ['17 (seventeen)','Diecisiete',{a:['17','diez y siete'],ea:['17','seventeen'],n:'PDF writes “diez y siete”.'}],
+  ['18 (eighteen)','Dieciocho',{a:['18','diez y ocho'],ea:['18','eighteen'],n:'PDF writes “diez y ocho”.'}],
+  ['19 (nineteen)','Diecinueve',{a:['19','diez y nueve'],ea:['19','nineteen'],n:'PDF writes “diez y nueve”.'}],
+  ['20 (twenty)','Veinte',{a:['20'],ea:['20','twenty'],n:'21 = veintiuno, 22 = veintidós…'}],
+  ['30 (thirty)','Treinta',{a:['30'],ea:['30','thirty'],n:'31 = treinta y uno.'}],
+  ['40 (forty)','Cuarenta',{a:['40'],ea:['40','forty'],n:'42 = cuarenta y dos.'}],
+  ['50 (fifty)','Cincuenta',{a:['50','cinquenta'],ea:['50','fifty'],n:'PDF prints “cinquenta”; correct spelling is cincuenta.'}]
+ ]],
+ ['26.4','Colors',[
+  ['Black','Negro'],['Blue','Azul'],['Beige','Beige'],['Blonde','Rubio',{a:['rubia']}],['Brown','Café',{a:['pardo','marrón']}],
+  ['Brunette','Moreno',{a:['morena']}],['Dark','Oscuro'],['Gold','Dorado'],['Gray','Gris',{ea:['grey']}],['Green','Verde'],
+  ['Light (color tone)','Claro',{ea:['light']}],['Orange','Naranja',{a:['anaranjado']}],['Pink','Rosado',{a:['rosa']}],['Red','Rojo'],
+  ['Silvery (color)','Plateado',{ea:['silvery','silver colored']}],['Silver (the metal)','Plata',{ea:['silver']}],['Yellow','Amarillo'],['White','Blanco']
+ ]],
+ ['26.4','Clothes',[
+  ['Blouse','Blusa'],['Jacket','Chaqueta'],['Coat','Saco'],['Overcoat','Abrigo'],['Hat','Sombrero'],['Cap','Gorra'],
+  ['Shirt','Camisa'],['Pants','Pantalones'],['Socks','Calcetines'],['Shoes','Zapatos'],['Gloves','Guantes']
+ ]],
+ ['26.4','Caló street slang',[
+  ['Sounds good / agreed','Órale',{ea:['ok','okay','agreed','sounds good']}],
+  ['Be careful, cops','Trucha, chota',{ea:['careful cops','watch out cops']}],
+  ['Cops (slang)','Chota',{ea:['cops','police'],g:'police'}],
+  ['Knife / blade (slang)','Filero',{ea:['knife','blade'],g:'knife'}],
+  ['Girlfriend (slang)','Wisa',{a:['huisa'],ea:['girlfriend'],n:'Also spelled huisa.'}],
+  ['Girl / guy on the side','Chapete',{ea:['side piece']}],
+  ['Gun (slang)','Cuete',{a:['chuete','cohete'],ea:['gun'],g:'gun'}],
+  ['Marijuana','Mota',{ea:['pot','weed','marijuana']}],
+  ['Watch out','Águila',{ea:['look out','watch out']}],
+  ['White guy / Anglo','Bolillo',{ea:['white guy','white boy','anglo']}],
+  ['Police officer (slang)','Poli',{ea:['police officer','cop'],g:'police'}],
+  ['Car or truck (slang)','Ranfla',{ea:['car','truck'],}],
+  ['Brother / close friend','Carnal',{ea:['brother','homeboy','close friend']}],
+  ['El Paso','El Chuco'],
+  ['Juárez','Juaritos',{ea:['juarez']}],
+  ['Dude / homeboy','Güey',{a:['wey','guey'],ea:['dude','homeboy']}],
+  ['Police (the law)','Jura',{ea:['police','the law'],g:'police'}],
+  ['The truth','La neta',{ea:['truth']}],
+  ['Money','Lana'],
+  ['Fight / punches','Chingazos',{a:['chingasos'],ea:['fight','punches']}],
+  ['No / not (slang)','Naranjas',{ea:['no','not']}],
+  ['Jail / prison','La pinta',{ea:['jail','prison']}]
+ ]],
+ ['26.5','Field interviews',[
+  ['Who called the police?','¿Quién llamó a la policía?'],
+  ['Did you call the police?','¿Usted llamó a la policía?'],
+  ['Who is the victim?','¿Quién es la víctima?'],
+  ['Calm down','Cálmese'],
+  ['Who saw what happened?','¿Quién vio lo que pasó?'],
+  ['I speak only a little Spanish','Hablo solo un poco de español'],
+  ['Do you speak English?','¿Habla usted inglés?',{a:['habla inglés']}],
+  ['I’ve called for a Spanish-speaking officer','Llamé a un oficial que habla español',{a:['yo llamé por un oficial que habla español','yo llamé a un oficial que habla español'],ea:['i called for a spanish speaking officer'],n:'PDF: “Yo llamé por un oficial que habla español.” Natives more often say “llamé a un oficial…”.'}],
+  ['I don’t understand','No entiendo'],
+  ['Do you understand?','¿Entiende?'],
+  ['How may I help you?','¿En qué puedo servirle?',{ea:['how can i help you']}],
+  ['Let’s talk in another room','Hablemos en otro cuarto'],
+  ['Do you wish to file a complaint?','¿Quiere hacer una demanda?',{a:['quiere hacer una denuncia','quiere hacer demanda'],ea:['do you want to file a complaint'],n:'“Demanda” usually means a lawsuit; a police report is a “denuncia”. Know both.'}],
+  ['Please repeat','Repita, por favor',{ea:['repeat please']}]
+ ]],
+ ['26.5','Traffic & pedestrian stops',[
+  ['Name','Nombre'],['Place of birth','Lugar de nacimiento'],['Age','Edad'],['Occupation','Ocupación'],
+  ['Address','Dirección',{a:['domicilio']}],['City','Ciudad'],['Zip code','Zona postal',{a:['código postal']}],
+  ['Phone number','Número de teléfono'],['Place of work','Lugar donde trabaja',{a:['lugar de trabajo'],ea:['workplace','where do you work']}],
+  ['Sign here','Firme aquí'],['Please','Por favor'],['Your signature','Su firma'],
+  ['Insurance','Aseguranza',{a:['seguro'],n:'Aseguranza is Texas/border usage; seguro is standard.'}],
+  ['Driver’s license','Licencia de conducir',{a:['licencia de manejar'],ea:['drivers license','license']}],
+  ['Are you the owner of the car?','¿Es usted el dueño del vehículo?',{a:['es usted el dueño del carro','es usted la dueña del vehículo'],g:'owner'}],
+  ['Get out of the car','Salga del vehículo',{a:['bájese del vehículo','salga del carro'],g:'getout'}],
+  ['Stop the motor (turn off the engine)','Apague el motor',{ea:['stop the motor','turn off the motor','turn off the engine','turn off the car'],g:'motor'}]
+ ]],
+ ['26.6','Accident investigation',[
+  ['Is anyone injured?','¿Hay alguien herido?',{ea:['is anyone hurt']}],
+  ['Are you alright?','¿Está bien?',{ea:['are you ok','are you okay','are you all right']}],
+  ['Stay calm','Quédese tranquilo',{a:['quédese tranquila']}],
+  ['Don’t move your head','No mueva la cabeza'],
+  ['Where does it hurt?','¿Dónde le duele?'],
+  ['Do you need an ambulance?','¿Necesita una ambulancia?'],
+  ['I’m going to call an ambulance','Voy a llamar una ambulancia',{a:['voy a llamar a una ambulancia']}],
+  ['Turn off the motor','Apague el motor',{ea:['turn off the engine','stop the motor','turn off the car'],g:'motor'}],
+  ['Get out of the car, please','Bájese del vehículo, por favor',{a:['salga del vehículo por favor'],g:'getout'}],
+  ['Are you the owner of the car? (accident)','¿Es usted el dueño del carro?',{a:['es usted el dueño del vehículo'],ea:['are you the owner of the car'],g:'owner'}],
+  ['Who was driving?','¿Quién venía manejando?',{a:['quién estaba manejando']}],
+  ['Were you wearing seat belts?','¿Llevaba puesto el cinturón de seguridad?',{ea:['were you wearing a seat belt','were you wearing your seatbelt']}],
+  ['Which way were you going?','¿En qué dirección iba usted?'],
+  ['How fast were you driving?','¿A qué velocidad venía manejando?'],
+  ['Which way was the other car going?','¿En qué dirección iba el otro vehículo?'],
+  ['Do you want me to call a tow truck?','¿Quiere que llame una grúa?',{a:['quiere que llame a una grúa']}],
+  ['Do you want me to call someone?','¿Quiere que llame a alguien?'],
+  ['Have you been drinking or taking any drugs?','¿Ha bebido alcohol o tomado drogas?',{ea:['have you been drinking or taking drugs']}]
+ ]],
+ ['26.7','Command & control',[
+  ['Police! Don’t move!','¡Policía! No se mueva',{ea:['police dont move']}],
+  ['Drop the weapon','Suelte el arma',{a:['suelta el arma'],n:'PDF: “suelta el arma” (informal tú). Formal usted: suelte el arma. Both work under stress.'}],
+  ['Hands in the air','Manos arriba',{ea:['hands up']}],
+  ['Turn around, slowly','Voltéese despacio',{a:['voltéese despaciamente','dese la vuelta despacio','date la vuelta despacio'],ea:['turn around slowly'],n:'PDF prints “despaciamente”, which isn’t a standard word. Say “despacio”.'}],
+  ['Stop!','¡Alto!'],
+  ['Spread your feet','Separe los pies',{a:['sepáre las pies'],n:'PDF prints “sepáre las pies”; correct: separe los pies (pies is masculine).'}]
+ ]],
+ ['26.8','Arrest commands',[
+  ['Get up','Levántese',{ea:['stand up']}],
+  ['Sit down','Siéntese'],
+  ['You are under arrest','Está arrestado',{a:['está arrestada','usted está arrestado'],ea:['youre under arrest'],n:'Arrestada for a female subject.'}]
+ ]],
+ ['26.8','Handcuffing position',[
+  ['Get on the floor (inside)','Acuéstese en el piso',{ea:['get on the floor','lie on the floor']}],
+  ['Get on the ground (outside)','Acuéstese en el suelo',{ea:['get on the ground','lie on the ground']}],
+  ['Arms straight out from your body','Extienda los brazos al lado',{ea:['arms out','extend your arms']}],
+  ['Cross your feet','Cruce los pies',{a:['cruza los pies'],n:'PDF: “cruza los pies” (informal). Formal: cruce los pies.'}],
+  ['Don’t look at me','No me mire']
+ ]],
+ ['26.8','Handcuffing',[
+  ['Give me your other hand','Deme la otra mano',{a:['déme la otra mano','dame la otra mano']}],
+  ['Put your hands behind your back','Ponga las manos detrás de la espalda',{a:['póngase las manos detrás de la espalda','pon las manos detrás de la espalda'],n:'PDF: “póngase las manos detrás de la espalda”. Simpler and standard: ponga las manos…'}]
+ ]]
+];
+const DANGER_CATS = new Set(['Danger words','Weapons','Command & control']);
+const slug = s => s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');
+const ITEMS = [];
+for (const [u,cat,list] of RAW) for (const [en,es,o={}] of list) {
+  ITEMS.push({id:u+'-'+slug(cat)+'-'+slug(en), u, cat, en, es, a:o.a||[], ea:o.ea||[], n:o.n||'', s:o.s||'', g:o.g||'', calo:cat==='Caló street slang'});
+}
+
+/* ============ Text helpers ============ */
+const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const norm = s => String(s).toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[’'`]/g,'').replace(/[¿¡?!.,;:"()\/\-]/g,' ').replace(/\s+/g,' ').trim();
+function lev(a,b){ const m=a.length,n=b.length; if(!m) return n; if(!n) return m; let p=Array.from({length:n+1},(_,j)=>j); for(let i=1;i<=m;i++){ const c=[i]; for(let j=1;j<=n;j++) c[j]=Math.min(p[j]+1,c[j-1]+1,p[j-1]+(a[i-1]===b[j-1]?0:1)); p=c; } return p[n]; }
+function enVariants(item){
+  const out = new Set([item.en, ...item.ea]);
+  for (const v of [...out]) {
+    out.add(v.replace(/\([^)]*\)/g,''));
+    if (v.includes('/')) {
+      if (/\s\/\s/.test(v)) v.split(/\s\/\s/).forEach(p => out.add(p.replace(/\([^)]*\)/g,'')));
+      const m = v.match(/(\S+)\/(\S+)/);
+      if (m) { out.add(v.replace(m[0], m[1])); out.add(v.replace(m[0], m[2])); }
+    }
+  }
+  return [...out].map(norm).filter(Boolean);
+}
+const esVariants = item => [item.es, ...item.a].map(norm);
+function grade(input, accepted){
+  const n = norm(input); if (!n) return {ok:false, exact:false, dist:99};
+  let best = 99;
+  for (const acc of accepted) { if (n === acc) return {ok:true, exact:true, dist:0}; best = Math.min(best, lev(n, acc)); }
+  const len = Math.min(...accepted.map(a=>a.length));
+  const tol = len < 4 ? 0 : Math.max(1, Math.floor(len*0.18));
+  return {ok: best <= tol, exact:false, dist:best};
+}
+
+/* ============ Phonetic respelling (rule-based, stressed syllable in CAPS) ============ */
+const VOW = 'aeiouáéíóúü';
+const isStrong = c => 'aeoáéóíú'.includes(c);
+const INSEP = new Set(['pl','pr','bl','br','fl','fr','cl','cr','gl','gr','dr','tr','kl','kr']);
+function tokenize(w){
+  const t=[];
+  for (let i=0;i<w.length;i++){
+    const c=w[i], nx=w[i+1]||'', two=c+nx;
+    if (two==='ch'||two==='ll'||two==='rr'){ t.push({s:two,v:false}); i++; continue; }
+    if ((two==='qu'||two==='gu') && 'eiéí'.includes(w[i+2]||'_')){ t.push({s:two,v:false}); i++; continue; }
+    if (c==='y'){ const after=w[i+1]; const vowelY = !after || !VOW.includes(after); t.push({s:'y',v:vowelY && i>0, yv:vowelY}); if (vowelY && i===0) t[t.length-1].v=true; continue; }
+    t.push({s:c, v:VOW.includes(c)});
+  }
+  return t;
+}
+function syllabify(w){
+  const t=tokenize(w); if(!t.length) return [];
+  // nuclei: groups of consecutive vowel tokens, split on hiatus (two strong vowels)
+  const groups=[]; let cur=null;
+  t.forEach((tok,idx)=>{
+    if(tok.v){
+      if(cur && cur.end===idx-1){
+        const prev=t[idx-1].s;
+        if(isStrong(prev) && isStrong(tok.s)){ groups.push(cur); cur={start:idx,end:idx}; }
+        else cur.end=idx;
+      } else { if(cur) groups.push(cur); cur={start:idx,end:idx}; }
+    }
+  });
+  if(cur) groups.push(cur);
+  if(!groups.length) return [t.map(x=>x.s).join('')];
+  const bounds=[0];
+  for(let g=1; g<groups.length; g++){
+    const a=groups[g-1].end+1, b=groups[g].start; const cons=t.slice(a,b).map(x=>x.s); const n=cons.length;
+    let cut;
+    if(n===0) cut=b;
+    else if(n===1) cut=a;
+    else if(n===2) cut = INSEP.has(cons[0]+cons[1]) ? a : a+1;
+    else if(n===3) cut = INSEP.has(cons[1]+cons[2]) ? a+1 : a+2;
+    else cut=a+2;
+    bounds.push(cut);
+  }
+  bounds.push(t.length);
+  const syl=[]; for(let i=0;i<bounds.length-1;i++) syl.push(t.slice(bounds[i],bounds[i+1]));
+  return syl;
+}
+const NUC = {a:'ah',e:'eh',i:'ee',o:'oh',u:'oo',y:'ee',ai:'eye',ay:'eye',ei:'ay',ey:'ay',oi:'oy',oy:'oy',au:'ow',eu:'eh-oo',ia:'yah',ie:'yeh',io:'yoh',iu:'yoo',ua:'wah',ue:'weh',ui:'wee',uy:'wee',uo:'woh',iai:'yeye',uay:'wye',uai:'wye',uei:'way',uey:'way'};
+function respellSyl(toks, nextTokFirst){
+  let out='', vowels='';
+  const flush=()=>{ if(vowels){ out += NUC[vowels] || vowels.split('').map(v=>NUC[v]||v).join(''); vowels=''; } };
+  toks.forEach((tk,i)=>{
+    const s=tk.s.normalize('NFD').replace(/[̀-ͯ]/g,'');
+    if(tk.v){ vowels += (s==='u'&&tk.s==='ü')?'u':s; return; }
+    flush();
+    const nx = (toks[i+1]||nextTokFirst||{s:''}).s.normalize('NFD').replace(/[̀-ͯ]/g,'')[0]||'';
+    const soft = 'ei'.includes(nx) && nx!=='';
+    switch(s){
+      case 'c': out += soft?'s':'k'; break;
+      case 'g': out += soft?'h':'g'; break;
+      case 'gu': out+='g'; break; case 'qu': out+='k'; break;
+      case 'h': break; case 'j': out+='h'; break; case 'll': out+='y'; break;
+      case 'ñ': out+='ny'; break; case 'v': out+='b'; break; case 'z': out+='s'; break;
+      case 'x': out+='ks'; break; case 'rr': out+='rr'; break;
+      default: out+=s;
+    }
+  });
+  flush();
+  return out;
+}
+function respellWord(w){
+  w=w.toLowerCase().replace(/[^a-záéíóúüñ]/g,''); if(!w) return '';
+  const syl=syllabify(w); if(!syl.length) return w;
+  let stress=-1;
+  syl.forEach((s,i)=>{ if(s.some(t=>/[áéíóú]/.test(t.s))) stress=i; });
+  if(stress<0){ stress = (syl.length===1) ? 0 : ('aeiouns'.includes(w[w.length-1]) ? syl.length-2 : syl.length-1); }
+  return syl.map((s,i)=>{
+    let r=respellSyl(s, syl[i+1]&&syl[i+1][0]);
+    if(i===0 && w[0]==='r') r='rr'+r.slice(1);
+    return syl.length>1 && i===stress ? r.toUpperCase() : r;
+  }).join('-');
+}
+const respell = phrase => String(phrase).split(/\s+/).map(respellWord).filter(Boolean).join(' ');
+ITEMS.forEach(it => it.ph = respell(it.es));
+
+/* ============ Storage (per viewer) ============ */
+const store = {
+  get(k,d){ try{ const v=localStorage.getItem('bpoc26.'+k); return v?JSON.parse(v):d; }catch(e){ return d; } },
+  set(k,v){ try{ localStorage.setItem('bpoc26.'+k, JSON.stringify(v)); }catch(e){} }
+};
+const settings = Object.assign({units:Object.keys(UNITS), calo:true, rate:0.85}, store.get('settings',{}));
+let stats = store.get('stats',{});
+function record(item, ok){
+  const s = stats[item.id] || {c:0,w:0};
+  ok ? s.c++ : s.w++; s.last = ok; s.t = Date.now();
+  stats[item.id]=s; store.set('stats',stats);
+}
+const status = it => { const s=stats[it.id]; if(!s) return 'new'; if(s.last && s.c>=2 && s.c>=s.w*2) return 'mastered'; if(!s.last || s.w>s.c) return 'weak'; return 'seen'; };
+
+/* ============ Audio: text-to-speech ============ */
+const tts = {ok: typeof window.speechSynthesis!=='undefined' && typeof window.SpeechSynthesisUtterance!=='undefined', es:null, en:null};
+function loadVoices(){
+  if(!tts.ok) return;
+  try{
+    const vs = speechSynthesis.getVoices();
+    const pick = prefs => { for(const p of prefs){ const v=vs.find(v=>(v.lang||'').replace('_','-').toLowerCase().startsWith(p)); if(v) return v; } return null; };
+    tts.es = pick(['es-mx','es-us','es-419','es-']); tts.en = pick(['en-us','en-']);
+  }catch(e){}
+  const note=document.getElementById('ttsNote');
+  if(!tts.ok){ note.hidden=false; note.textContent='This browser can’t play spoken audio. Text, tests and phonetic spellings still work.'; }
+  else if(vsLoaded && !tts.es){ note.hidden=false; note.textContent='No Spanish voice found on this device, so audio may use an English accent. On a phone, add a Spanish voice in your system text-to-speech settings.'; }
+  else note.hidden=true;
+}
+let vsLoaded=false;
+if(tts.ok){ try{ speechSynthesis.onvoiceschanged=()=>{vsLoaded=true;loadVoices();}; }catch(e){} setTimeout(()=>{vsLoaded=true;loadVoices();},1500); }
+function speak(text, lang){
+  if(!tts.ok) return false;
+  try{
+    speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance(String(text).replace(/\([^)]*\)/g,''));
+    const v = lang==='es'?tts.es:tts.en;
+    u.lang = v ? v.lang : (lang==='es'?'es-MX':'en-US'); if(v) u.voice=v;
+    u.rate = lang==='es' ? settings.rate : 1;
+    speechSynthesis.speak(u); return true;
+  }catch(e){ return false; }
+}
+
+/* ============ Speech recognition ============ */
+const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+let micBlocked = !SR, activeRec = null;
+function recognize(lang, onInterim){
+  return new Promise((resolve,reject)=>{
+    let r; try{ r=new SR(); }catch(e){ reject('unsupported'); return; }
+    r.lang=lang; r.interimResults=true; r.maxAlternatives=3; r.continuous=false;
+    let text='', alts=[];
+    r.onresult = e => {
+      text = [...e.results].map(x=>x[0].transcript).join(' ');
+      onInterim && onInterim(text);
+      const last = e.results[e.results.length-1];
+      if(last.isFinal) alts = [...last].map(a=>({t:a.transcript, c:Math.round((a.confidence||0)*100)/100}));
+    };
+    r.onerror = e => reject(e.error||'error');
+    r.onend = () => { activeRec=null; resolve({text:text.trim(), alts}); };
+    try{ r.start(); activeRec=r; }catch(e){ reject('start-failed'); }
+  });
+}
+
+/* ============ AI (Claude via the page's sample capability) ============ */
+let sample = null, aiReady = false;
+(async()=>{
+  try{ if(window.claude && window.claude.use) sample = await window.claude.use('sample'); }catch(e){ sample=null; }
+  aiReady = true; render();
+})();
+let aiOff = false;
+const aiErr = e => {
+  const c = e && e.code;
+  if(['not_granted','sampling_disabled','not_declared','capability_disabled','capability_removed'].includes(c)){ aiOff=true; return 'AI coaching is turned off for this view. Everything else still works.'; }
+  if(c==='rate_limited') return 'Too many coaching requests right now. Wait a minute, then try again.';
+  if(c==='session_expired') return 'Your Claude sign-in expired. Sign in again to use coaching.';
+  if(c==='invalid_json') return 'The coach’s reply came back garbled. Tap Coach me to try again.';
+  if(c==='cancelled') return '';
+  return 'The coach couldn’t be reached. Tap Coach me to try again.';
+};
+const aiAvailable = () => !!sample && !aiOff;
+
+/* ============ Deck ============ */
+function deck(){
+  const seen=new Set();
+  return ITEMS.filter(it => settings.units.includes(it.u) && (settings.calo || !it.calo)).filter(it=>{
+    const k=norm(it.en.replace(/\([^)]*\)/g,''))+'|'+norm(it.es); if(seen.has(k)) return false; seen.add(k); return true;
+  });
+}
+const shuffle = a => { a=[...a]; for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; };
+function distractors(item, field){
+  const ans = norm(item[field]);
+  const ok = x => x!==item && norm(x[field])!==ans && !(item.g && x.g===item.g) && !(field==='en' && norm(x.en.replace(/\([^)]*\)/g,''))===norm(item.en.replace(/\([^)]*\)/g,'')));
+  const pick=[], used=new Set([ans]);
+  for (const pool of [ITEMS.filter(x=>x.cat===item.cat), ITEMS.filter(x=>x.u===item.u), ITEMS]) {
+    for (const x of shuffle(pool.filter(ok))) { const k=norm(x[field]); if(!used.has(k)){ used.add(k); pick.push(x); } if(pick.length===3) return pick; }
+  }
+  return pick;
+}
+
+/* ============ Icons ============ */
+const IC = {
+  spk:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 5 6 9H3v6h3l5 4z"/><path d="M15.5 8.5a5 5 0 0 1 0 7"/><path d="M18.5 5.5a9 9 0 0 1 0 13"/></svg>',
+  mic:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0"/><path d="M12 18v3"/></svg>',
+  spark:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v4M12 17v4M3 12h4M17 12h4M6 6l2.5 2.5M15.5 15.5 18 18M6 18l2.5-2.5M15.5 8.5 18 6"/></svg>'
+};
+
+/* ============ App state ============ */
+let tab = store.get('tab','study');
+const S = {
+  study:{order:null, i:0, flipped:false, front:store.get('front','es'), explain:null, explainFor:null},
+  test:{phase:'setup', fmt:'mc', dir:'en2es', len:20, qs:[], i:0, results:[], answered:null, typed:''},
+  speak:{phase:'setup', mode:'en2es', len:15, qs:[], i:0, checked:null, heard:'', alts:[], src:'', listening:false, coach:null, auto:store.get('autocoach',false), results:[]}
+};
+const view = document.getElementById('view');
+
+/* ============ Deck bar ============ */
+function renderDeckBar(){
+  const chips = document.getElementById('unitChips');
+  chips.innerHTML = Object.entries(UNITS).map(([u,name])=>`<button class="chip" aria-pressed="${settings.units.includes(u)}" data-unit="${u}"><span class="mono">${u}</span>${esc(name)}</button>`).join('');
+  document.getElementById('caloToggle').checked = settings.calo;
+  document.getElementById('rateSel').value = String(settings.rate);
+  const d = deck();
+  document.getElementById('deckCount').textContent = `${d.length} terms selected`;
+}
+document.getElementById('unitChips').addEventListener('click', e=>{
+  const b=e.target.closest('[data-unit]'); if(!b) return;
+  const u=b.dataset.unit; const set=new Set(settings.units);
+  set.has(u)?set.delete(u):set.add(u); if(!set.size) set.add(u);
+  settings.units=Object.keys(UNITS).filter(k=>set.has(k)); store.set('settings',settings); deckChanged();
+});
+document.getElementById('caloToggle').addEventListener('change', e=>{ settings.calo=e.target.checked; store.set('settings',settings); deckChanged(); });
+document.getElementById('rateSel').addEventListener('change', e=>{ settings.rate=parseFloat(e.target.value); store.set('settings',settings); });
+function deckChanged(){ S.study.order=null; S.study.i=0; S.study.flipped=false; renderDeckBar(); render(); }
+
+/* ============ Tabs ============ */
+document.querySelector('nav').addEventListener('click', e=>{
+  const b=e.target.closest('[data-tab]'); if(!b) return;
+  tab=b.dataset.tab; store.set('tab',tab); try{ activeRec && activeRec.abort(); }catch(_){}
+  render(); window.scrollTo({top:0});
+});
+function render(){
+  document.querySelectorAll('nav [data-tab]').forEach(b=>b.setAttribute('aria-selected', String(b.dataset.tab===tab)));
+  ({study:renderStudy, test:renderTest, speak:renderSpeak, progress:renderProgress})[tab]();
+}
+
+/* ============ STUDY ============ */
+function renderStudy(){
+  const d = deck(), st=S.study;
+  if(!st.order || st.order.length!==d.length) st.order = d.map(x=>x.id);
+  const byId = Object.fromEntries(ITEMS.map(x=>[x.id,x]));
+  const it = byId[st.order[st.i]] || d[0];
+  const frontEs = st.front==='es';
+  const back = st.flipped;
+  const danger = DANGER_CATS.has(it.cat);
+  view.innerHTML = `
+  <div class="row between">
+    <h2>Flashcards</h2>
+    <div class="row">
+      <span class="lbl">Show first</span>
+      <div class="seg" role="group" aria-label="Card front">
+        <button data-front="es" aria-pressed="${frontEs}">Spanish</button><button data-front="en" aria-pressed="${!frontEs}">English</button>
+      </div>
+      <button class="btn" id="shuffleBtn">Shuffle</button>
+    </div>
+  </div>
+  <article class="card ${danger?'danger':''}" aria-live="polite">
+    <div class="cardmeta"><span>LO ${it.u} · ${esc(it.cat)}</span><span class="tabnum">${st.i+1} / ${st.order.length} · ${statusLabel(it)}</span></div>
+    <div class="cardbody">
+      ${frontEs ? esBlock(it) : `<p class="term en">${esc(it.en)}</p>`}
+      ${back ? `<div class="divider"></div>${frontEs ? `<p class="term en">${esc(it.en)}</p>` : esBlock(it)}${extras(it)}` : `<p class="small muted">Say it out loud, then flip to check.</p>`}
+      ${st.explainFor===it.id && st.explain ? `<div class="coach"><div class="head"><span class="pill neutral">Coach</span></div><p style="white-space:pre-wrap">${esc(st.explain)}</p></div>`:''}
+    </div>
+    <div class="cardfoot">
+      <button class="btn" id="prevBtn" ${st.i===0?'disabled':''}>Back</button>
+      <button class="btn primary grow" id="flipBtn">${back?'Hide answer':'Flip card'}</button>
+      <button class="btn" id="nextBtn">Next</button>
+      <div class="row" style="width:100%">
+        <button class="btn" id="playEs">${IC.spk} Hear Spanish</button>
+        ${aiAvailable()?`<button class="btn ghost" id="explainBtn">${IC.spark} Explain this phrase</button>`:''}
+      </div>
+    </div>
+  </article>
+  ${aiReady && !aiAvailable() ? `<p class="hint">AI coaching (phrase explanations and pronunciation feedback) works when this page is opened inside Claude while signed in.</p>`:''}
+  <details class="panel">
+    <summary>Full reference list (${d.length} terms)</summary>
+    ${refList(d)}
+  </details>`;
+  view.querySelectorAll('[data-front]').forEach(b=>b.onclick=()=>{ st.front=b.dataset.front; store.set('front',st.front); st.flipped=false; render(); });
+  view.querySelector('#shuffleBtn').onclick=()=>{ st.order=shuffle(d.map(x=>x.id)); st.i=0; st.flipped=false; render(); };
+  view.querySelector('#flipBtn').onclick=()=>{ st.flipped=!st.flipped; render(); };
+  view.querySelector('#prevBtn').onclick=()=>{ if(st.i>0){ st.i--; st.flipped=false; render(); } };
+  view.querySelector('#nextBtn').onclick=()=>{ st.i=(st.i+1)%st.order.length; st.flipped=false; render(); };
+  view.querySelector('#playEs').onclick=()=>speak(it.es,'es');
+  const eb=view.querySelector('#explainBtn'); if(eb) eb.onclick=()=>explain(it, eb);
+  view.querySelectorAll('[data-play]').forEach(b=>b.onclick=()=>speak(b.dataset.play,'es'));
+}
+const statusLabel = it => ({new:'New', seen:'Practiced', weak:'Needs work', mastered:'Mastered'})[status(it)];
+const esBlock = it => `<p class="term">${esc(it.es)}</p><span class="phon">${esc(it.ph)}</span>`;
+const extras = it => `${it.s?`<p class="slang"><b>Street / slang</b>${esc(it.s)}</p>`:''}${it.a.length?`<p class="slang"><b>Also accepted</b>${esc(it.a.filter(a=>!/^\d+$/.test(a)).join(', '))}</p>`:''}${it.n?`<p class="note">${esc(it.n)}</p>`:''}`;
+function refList(d){
+  let html='', lastCat='';
+  for(const it of d){
+    if(it.cat!==lastCat){ if(lastCat) html+='</tbody></table></div>'; html+=`<h3 style="margin-top:8px">${it.u} · ${esc(it.cat)}</h3><div class="tablewrap"><table><thead><tr><th>English</th><th>Spanish</th><th></th></tr></thead><tbody>`; lastCat=it.cat; }
+    html+=`<tr><td>${esc(it.en)}</td><td><strong>${esc(it.es)}</strong><br><span class="phon">${esc(it.ph)}</span></td><td><button class="iconbtn" data-play="${esc(it.es)}" aria-label="Hear ${esc(it.es)}">${IC.spk}</button></td></tr>`;
+  }
+  return html + (lastCat?'</tbody></table></div>':'');
+}
+async function explain(it, btn){
+  const st=S.study; st.explainFor=it.id; st.explain='Thinking…'; render();
+  const prompt = `You are tutoring a Texas police academy cadet for the TCOLE Basic Peace Officer Course, Chapter 26 (Introductory Spanish).
+Phrase: "${it.es}" = "${it.en}" (learning objective ${it.u}, ${it.cat}).
+In plain text under 90 words, with three short labeled lines:
+On duty: when an officer would use it.
+Grammar: formal/informal or literal word-by-word meaning.
+Remember it: one memory trick.
+No markdown symbols.`;
+  try{
+    await sample(prompt, {modelTier:'quick', onText:({text})=>{ if(st.explainFor===it.id){ st.explain=text; if(tab==='study') render(); } }});
+  }catch(e){ st.explain = (e && e.text) || aiErr(e); if(tab==='study') render(); }
+}
+
+/* ============ TEST ============ */
+function renderTest(){
+  const t=S.test;
+  if(t.phase==='setup') return testSetup();
+  if(t.phase==='done') return testDone();
+  testQuestion();
+}
+function seg(name, cur, opts){ return `<div class="seg" role="group" aria-label="${name}">${opts.map(([v,l])=>`<button data-${name}="${v}" aria-pressed="${String(cur)===String(v)}">${l}</button>`).join('')}</div>`; }
+function testSetup(){
+  const t=S.test, d=deck();
+  view.innerHTML = `
+  <h2>Build a test</h2>
+  <div class="panel">
+    <div class="field"><span class="lbl">Answer format</span>${seg('fmt',t.fmt,[['mc','Multiple choice'],['typed','Typed'],['mix','Mixed']])}</div>
+    <div class="field"><span class="lbl">Direction</span>${seg('dir',t.dir,[['en2es','English → Spanish'],['es2en','Spanish → English'],['listen','Listening (hear Spanish)'],['mix','Mixed']])}</div>
+    <div class="field"><span class="lbl">Questions</span>${seg('len',t.len,[[10,'10'],[20,'20'],[40,'40'],[0,`All ${d.length}`]])}</div>
+    <p class="small muted">Typed answers ignore accents, capitals and punctuation, and allow a small typo. Accepted variants from the PDF count.</p>
+    <button class="btn primary big" id="startTest">Start test</button>
+  </div>`;
+  for(const k of ['fmt','dir','len']) view.querySelectorAll(`[data-${k}]`).forEach(b=>b.onclick=()=>{ t[k]= k==='len'?parseInt(b.dataset[k]):b.dataset[k]; render(); });
+  view.querySelector('#startTest').onclick=()=>startTest(d);
+}
+function startTest(items){
+  const t=S.test;
+  let pool = shuffle(items); if(t.len) pool=pool.slice(0,t.len);
+  t.qs = pool.map(item=>({item, fmt: t.fmt==='mix'?(Math.random()<.5?'mc':'typed'):t.fmt, dir: t.dir==='mix'?['en2es','es2en','listen'][Math.floor(Math.random()*3)]:t.dir}));
+  t.qs.forEach(q=>{ if(q.fmt==='mc'){ const field=q.dir==='en2es'?'es':'en'; q.opts=shuffle([q.item, ...distractors(q.item, field)]); } });
+  t.i=0; t.results=[]; t.answered=null; t.typed=''; t.phase='q'; render();
+  if(t.qs[0].dir==='listen') setTimeout(()=>speak(t.qs[0].item.es,'es'),250);
+}
+function testQuestion(){
+  const t=S.test, q=t.qs[t.i], it=q.item, a=t.answered;
+  const toEs = q.dir==='en2es';
+  const field = toEs?'es':'en';
+  const listenNoTts = q.dir==='listen' && !tts.ok;
+  let prompt;
+  if(q.dir==='en2es') prompt = `<p class="lbl">Say / write in Spanish</p><p class="term en">${esc(it.en)}</p>`;
+  else if(q.dir==='es2en') prompt = `<p class="lbl">What does this mean?</p><p class="term">${esc(it.es)}</p>`;
+  else prompt = `<p class="lbl">Listen. What does it mean?</p><button class="btn big" id="replay">${IC.spk} Play again</button>${(a||listenNoTts)?`<p class="term">${esc(it.es)}</p>`:''}`;
+  let answerUI;
+  if(q.fmt==='mc'){
+    answerUI = `<div class="opts">${q.opts.map((o,k)=>{
+      let cls=''; if(a){ if(o===it) cls='right'; else if(a.pick===k) cls='wrong'; }
+      return `<button class="opt ${cls}" data-opt="${k}" ${a?'disabled':''}><span class="k">${'ABCD'[k]}</span><span>${esc(o[field])}</span></button>`;
+    }).join('')}</div>`;
+  } else {
+    answerUI = `<form id="typedForm" style="width:100%;display:flex;flex-direction:column;gap:8px" autocomplete="off">
+      <input type="text" id="typedIn" value="${esc(t.typed)}" placeholder="${toEs?'Type the Spanish (accents optional)':'Type the English meaning'}" ${a?'disabled':''} autocapitalize="off" spellcheck="false" lang="${toEs?'es':'en'}">
+      ${a?'':`<button class="btn primary" type="submit">Check</button>`}
+    </form>`;
+  }
+  let fb='';
+  if(a){
+    const cls = a.ok ? (a.exact===false && q.fmt==='typed' ? 'close':'ok') : 'no';
+    const label = a.ok ? (cls==='close'?'Close enough':'Correct') : 'Missed';
+    fb = `<div class="verdict ${cls}"><span class="pill ${cls}">${label}</span><div><strong>${esc(it.es)}</strong> = ${esc(it.en)}<br><span class="phon">${esc(it.ph)}</span>${cls==='close'?`<br><span class="small">Check your spelling.</span>`:''}</div></div>
+    ${!a.ok && q.fmt==='typed' ? `<button class="btn ghost small" id="override">I was right — count it</button>`:''}`;
+  }
+  view.innerHTML = `
+  <div class="row between"><h2>Test</h2><span class="small muted tabnum">Question ${t.i+1} of ${t.qs.length} · ${t.results.filter(r=>r.ok).length} correct</span></div>
+  <div class="progressline"><i style="width:${(t.i/t.qs.length)*100}%"></i></div>
+  <article class="card ${DANGER_CATS.has(it.cat)?'danger':''}">
+    <div class="cardmeta"><span>LO ${it.u} · ${esc(it.cat)}</span><span>${q.fmt==='mc'?'Multiple choice':'Typed'}</span></div>
+    <div class="cardbody">${prompt}${answerUI}${fb}</div>
+    <div class="cardfoot">
+      ${a?`<button class="btn" id="hear">${IC.spk} Hear it</button><button class="btn primary grow" id="nextQ">${t.i+1<t.qs.length?'Next question':'See results'}</button>`
+         :`<button class="btn ghost" id="quit">End test</button><span class="grow"></span>${q.fmt==='typed'?`<button class="btn" id="skip">I don’t know</button>`:''}`}
+    </div>
+  </article>`;
+  const rp=view.querySelector('#replay'); if(rp) rp.onclick=()=>speak(it.es,'es');
+  view.querySelectorAll('[data-opt]').forEach(b=>b.onclick=()=>{ const k=+b.dataset.opt; answer({pick:k, ok:q.opts[k]===it, exact:true}); });
+  const f=view.querySelector('#typedForm');
+  if(f && !a){ const inp=view.querySelector('#typedIn'); inp.focus(); inp.oninput=()=>t.typed=inp.value;
+    f.onsubmit=e=>{ e.preventDefault(); if(!inp.value.trim()) return; const g=grade(inp.value, toEs?esVariants(it):enVariants(it)); answer({ok:g.ok, exact:g.exact, given:inp.value}); }; }
+  const sk=view.querySelector('#skip'); if(sk) sk.onclick=()=>answer({ok:false, exact:false, given:''});
+  const ov=view.querySelector('#override'); if(ov) ov.onclick=()=>{ a.ok=true; a.exact=true; const r=t.results[t.results.length-1]; r.ok=true; stats[it.id].w=Math.max(0,stats[it.id].w-1); stats[it.id].c++; stats[it.id].last=true; store.set('stats',stats); render(); };
+  const hr=view.querySelector('#hear'); if(hr) hr.onclick=()=>speak(it.es,'es');
+  const nx=view.querySelector('#nextQ'); if(nx){ nx.focus(); nx.onclick=()=>{ t.i++; t.answered=null; t.typed=''; if(t.i>=t.qs.length){ t.phase='done'; } else if(t.qs[t.i].dir==='listen') speak(t.qs[t.i].item.es,'es'); render(); }; }
+  const qt=view.querySelector('#quit'); if(qt) qt.onclick=()=>{ t.phase = t.results.length?'done':'setup'; render(); };
+}
+function answer(a){
+  const t=S.test, q=t.qs[t.i];
+  t.answered=a; t.results.push({item:q.item, ok:a.ok, given:a.given, q}); record(q.item, a.ok);
+  if(q.dir!=='en2es' || a.ok) {} // no auto audio
+  render();
+}
+function testDone(){
+  const t=S.test, n=t.results.length, c=t.results.filter(r=>r.ok).length, pct=n?Math.round(c/n*100):0;
+  const missed=t.results.filter(r=>!r.ok);
+  view.innerHTML = `
+  <h2>Results</h2>
+  <div class="panel">
+    <div class="row" style="gap:20px;align-items:flex-end">
+      <div class="score">${pct}%</div>
+      <div><p class="tabnum"><strong>${c} of ${n}</strong> correct</p><p class="small muted">${pct>=90?'Ready for the practical demonstration.':pct>=70?'Solid. Drill the misses below.':'Keep drilling. Run the missed terms again.'}</p></div>
+    </div>
+    <div class="row">
+      ${missed.length?`<button class="btn primary" id="retryMissed">Retest the ${missed.length} missed</button>`:''}
+      <button class="btn" id="newTest">New test</button>
+    </div>
+  </div>
+  ${missed.length?`<div class="panel"><h3>Missed terms</h3><div class="tablewrap"><table><thead><tr><th>English</th><th>Spanish</th><th>Your answer</th><th></th></tr></thead><tbody>
+    ${missed.map(r=>`<tr><td>${esc(r.item.en)}</td><td><strong>${esc(r.item.es)}</strong><br><span class="phon">${esc(r.item.ph)}</span></td><td class="muted">${r.given!==undefined?esc(r.given||'—'):'(wrong choice)'}</td><td><button class="iconbtn" data-play="${esc(r.item.es)}" aria-label="Hear">${IC.spk}</button></td></tr>`).join('')}
+  </tbody></table></div></div>`:''}`;
+  const rm=view.querySelector('#retryMissed'); if(rm) rm.onclick=()=>{ const l=t.len; t.len=0; startTest(missed.map(r=>r.item)); t.len=l; };
+  view.querySelector('#newTest').onclick=()=>{ t.phase='setup'; render(); };
+  view.querySelectorAll('[data-play]').forEach(b=>b.onclick=()=>speak(b.dataset.play,'es'));
+}
+
+/* ============ SPEAK ============ */
+const SPEAK_MODES = {
+  en2es:{label:'Hear English → say Spanish', ansLang:'es'},
+  es2en:{label:'Hear Spanish → say English', ansLang:'en'},
+  repeat:{label:'Repeat after me', ansLang:'es'}
+};
+function renderSpeak(){
+  const s=S.speak;
+  if(s.phase==='setup') return speakSetup();
+  if(s.phase==='done') return speakDone();
+  speakCard();
+}
+function speakSetup(){
+  const s=S.speak, d=deck();
+  view.innerHTML = `
+  <h2>Speaking drill</h2>
+  <div class="panel">
+    <div class="field"><span class="lbl">Drill</span>${seg('smode',s.mode,Object.entries(SPEAK_MODES).map(([k,v])=>[k,v.label]))}</div>
+    <div class="field"><span class="lbl">Prompts</span>${seg('slen',s.len,[[10,'10'],[15,'15'],[30,'30'],[0,`All ${d.length}`]])}</div>
+    <label class="toggle"><input type="checkbox" id="autoCoach" ${s.auto?'checked':''} ${aiAvailable()?'':'disabled'}> Coach me automatically after every answer</label>
+    <div class="hint">
+      ${SR?`Tap the microphone and speak. If the mic is blocked in this view, tap the answer box and use your phone keyboard’s microphone key to dictate instead.`
+          :`Live mic isn’t available in this browser. Tap the answer box and use your phone keyboard’s microphone key to dictate (set the keyboard to Spanish for Spanish answers), or type.`}
+      ${aiAvailable()?' The AI coach compares what was heard to the target and points out the sounds to fix. It works from the transcript, so it catches wrong words and syllables better than accent.':''}
+    </div>
+    <button class="btn primary big" id="startSpeak">Start drill</button>
+  </div>`;
+  view.querySelectorAll('[data-smode]').forEach(b=>b.onclick=()=>{ s.mode=b.dataset.smode; render(); });
+  view.querySelectorAll('[data-slen]').forEach(b=>b.onclick=()=>{ s.len=parseInt(b.dataset.slen); render(); });
+  view.querySelector('#autoCoach').onchange=e=>{ s.auto=e.target.checked; store.set('autocoach',s.auto); };
+  view.querySelector('#startSpeak').onclick=()=>startSpeak(d);
+}
+function startSpeak(items){
+  const s=S.speak; let pool=shuffle(items); if(s.len) pool=pool.slice(0,s.len);
+  Object.assign(s,{qs:pool, i:0, phase:'q', results:[]}); resetSpeakCard(); render(); playPrompt();
+}
+function resetSpeakCard(){ Object.assign(S.speak,{checked:null, heard:'', alts:[], src:'', coach:null, listening:false, showText:false}); }
+function playPrompt(){ const s=S.speak, it=s.qs[s.i]; if(!it) return; s.mode==='es2en'||s.mode==='repeat' ? speak(it.es,'es') : speak(it.en.replace(/\([^)]*\)/g,''),'en'); }
+function speakCard(){
+  const s=S.speak, it=s.qs[s.i], m=SPEAK_MODES[s.mode], c=s.checked;
+  let prompt;
+  if(s.mode==='en2es') prompt=`<p class="lbl">Say it in Spanish</p><p class="term en">${esc(it.en)}</p>`;
+  else if(s.mode==='es2en') prompt=`<p class="lbl">Listen, then say it in English</p>${(s.showText||c||!tts.ok)?`<p class="term">${esc(it.es)}</p>`:`<button class="btn ghost small" id="showText">Show the Spanish text</button>`}`;
+  else prompt=`<p class="lbl">Listen, then repeat</p><p class="term">${esc(it.es)}</p><span class="phon">${esc(it.ph)}</span>`;
+  const canMic = SR && !micBlocked;
+  view.innerHTML = `
+  <div class="row between"><h2>${esc(m.label)}</h2><span class="small muted tabnum">${s.i+1} of ${s.qs.length}</span></div>
+  <div class="progressline"><i style="width:${(s.i/s.qs.length)*100}%"></i></div>
+  <article class="card ${DANGER_CATS.has(it.cat)?'danger':''}">
+    <div class="cardmeta"><span>LO ${it.u} · ${esc(it.cat)}</span><span>Answer in ${m.ansLang==='es'?'Spanish':'English'}</span></div>
+    <div class="cardbody">
+      ${prompt}
+      <button class="btn" id="playPrompt">${IC.spk} Play prompt</button>
+      ${c?'':`<div class="row" style="width:100%;gap:14px;flex-wrap:nowrap">
+        ${canMic?`<button class="mic ${s.listening?'live':''}" id="micBtn" aria-label="${s.listening?'Stop listening':'Start speaking'}">${IC.mic}</button>`:''}
+        <div class="grow" style="min-width:0;display:flex;flex-direction:column;gap:6px">
+          <span class="lbl">${s.listening?'Listening…':(canMic?'Tap the mic, or dictate / type':'Dictate with your keyboard mic, or type')}</span>
+          <form id="sayForm" style="display:flex;gap:6px" autocomplete="off">
+            <input type="text" id="sayIn" value="${esc(s.heard)}" lang="${m.ansLang}" placeholder="${m.ansLang==='es'?'Tu respuesta en español':'Your answer in English'}" autocapitalize="off" spellcheck="false">
+            <button class="btn primary" type="submit">Check</button>
+          </form>
+        </div>
+      </div>`}
+      ${c?speakFeedback(it):''}
+      ${s.coach?coachBlock():''}
+    </div>
+    <div class="cardfoot">
+      ${c?`<button class="btn" id="hearAns">${IC.spk} Hear correct</button>
+           ${aiAvailable()&&!s.coach?`<button class="btn" id="coachBtn">${IC.spark} Coach me</button>`:''}
+           ${!c.ok?`<button class="btn ghost" id="retrySay">Try again</button>`:''}
+           <span class="grow"></span><button class="btn primary" id="nextSay">${s.i+1<s.qs.length?'Next':'Finish'}</button>`
+         :`<button class="btn ghost" id="endSpeak">End drill</button><span class="grow"></span><button class="btn" id="skipSay">Show answer</button>`}
+    </div>
+  </article>`;
+  view.querySelector('#playPrompt').onclick=playPrompt;
+  const st=view.querySelector('#showText'); if(st) st.onclick=()=>{ s.showText=true; render(); };
+  const mic=view.querySelector('#micBtn'); if(mic) mic.onclick=toggleMic;
+  const f=view.querySelector('#sayForm');
+  if(f){ const inp=view.querySelector('#sayIn'); inp.oninput=()=>{ s.heard=inp.value; s.src='typed'; };
+    f.onsubmit=e=>{ e.preventDefault(); if(!inp.value.trim()) return; s.heard=inp.value; if(!s.src) s.src='typed'; checkSay(); }; }
+  const sk=view.querySelector('#skipSay'); if(sk) sk.onclick=()=>{ s.heard=''; s.src='typed'; checkSay(true); };
+  const en=view.querySelector('#endSpeak'); if(en) en.onclick=()=>{ try{activeRec&&activeRec.abort();}catch(_){} s.phase=s.results.length?'done':'setup'; render(); };
+  const ha=view.querySelector('#hearAns'); if(ha) ha.onclick=()=>speak(it.es,'es');
+  const cb=view.querySelector('#coachBtn'); if(cb) cb.onclick=coach;
+  const rt=view.querySelector('#retrySay'); if(rt) rt.onclick=()=>{ s.results.pop(); resetSpeakCard(); render(); };
+  const nx=view.querySelector('#nextSay'); if(nx) nx.onclick=()=>{ s.i++; resetSpeakCard(); if(s.i>=s.qs.length){ s.phase='done'; render(); } else { render(); playPrompt(); } };
+}
+async function toggleMic(){
+  const s=S.speak, it=s.qs[s.i];
+  if(s.listening){ try{ activeRec&&activeRec.stop(); }catch(_){} return; }
+  const lang = SPEAK_MODES[s.mode].ansLang==='es' ? 'es-MX' : 'en-US';
+  try{ speechSynthesis && speechSynthesis.cancel(); }catch(_){}
+  s.listening=true; s.heard=''; render();
+  try{
+    const r = await recognize(lang, txt=>{ s.heard=txt; const inp=document.getElementById('sayIn'); if(inp) inp.value=txt; });
+    s.listening=false; s.heard=r.text; s.alts=r.alts; s.src='mic';
+    if(r.text && S.speak.qs[S.speak.i]===it){ checkSay(); } else render();
+  }catch(err){
+    s.listening=false;
+    if(['not-allowed','service-not-allowed','unsupported','start-failed','audio-capture'].includes(err)) micBlocked=true;
+    render();
+    const inp=document.getElementById('sayIn'); if(inp){ inp.focus(); }
+  }
+}
+function checkSay(skipped){
+  const s=S.speak, it=s.qs[s.i];
+  const accepted = SPEAK_MODES[s.mode].ansLang==='es' ? esVariants(it) : enVariants(it);
+  let g = skipped ? {ok:false,exact:false} : grade(s.heard, accepted);
+  if(!g.ok && s.alts.length) for(const a of s.alts){ const g2=grade(a.t, accepted); if(g2.ok){ g=g2; break; } }
+  s.checked = {ok:g.ok, exact:g.exact, skipped:!!skipped};
+  s.results.push({item:it, ok:g.ok, heard:s.heard}); record(it, g.ok);
+  render(); speak(it.es,'es');
+  if(s.auto && aiAvailable() && !skipped) coach();
+}
+function speakFeedback(it){
+  const s=S.speak, c=s.checked;
+  const cls = c.ok ? (c.exact?'ok':'close') : 'no';
+  const label = c.ok ? (c.exact?'Match':'Close') : (c.skipped?'Answer':'Not yet');
+  return `<div class="verdict ${cls}"><span class="pill ${cls}">${label}</span><div style="min-width:0">
+    ${s.heard?`<p class="small muted">${s.src==='mic'?'Heard':'You wrote'}: <span class="heard">${esc(s.heard)}</span></p>`:''}
+    <p><strong>${esc(it.es)}</strong> = ${esc(it.en)}</p><span class="phon">${esc(it.ph)}</span>
+    ${it.n?`<p class="note" style="margin-top:6px">${esc(it.n)}</p>`:''}
+  </div></div>`;
+}
+function coachBlock(){
+  const k=S.speak.coach;
+  if(k.loading) return `<div class="coach"><div class="head"><span class="pill neutral">Coach</span><span class="small muted">Listening back over your answer…</span></div></div>`;
+  if(k.error) return `<div class="coach"><p class="small">${esc(k.error)}</p></div>`;
+  const r=k.r, v=String(r.verdict||'').toLowerCase(); const cls=v==='correct'?'ok':v==='close'?'close':'no';
+  return `<div class="coach">
+    <div class="head"><span class="pill ${cls}">${esc(v||'feedback')}</span>${Number.isFinite(+r.score)?`<span class="mono small tabnum">${Math.max(0,Math.min(100,Math.round(+r.score)))}/100</span>`:''}</div>
+    ${r.summary?`<p>${esc(r.summary)}</p>`:''}
+    ${Array.isArray(r.tips)&&r.tips.length?`<ul>${r.tips.slice(0,3).map(t=>`<li>${esc(t)}</li>`).join('')}</ul>`:''}
+    ${r.say_it?`<p class="small"><span class="lbl">Say it like</span> <span class="phon">${esc(r.say_it)}</span></p>`:''}
+    ${r.memory_hook?`<p class="small muted">Memory hook: ${esc(r.memory_hook)}</p>`:''}
+  </div>`;
+}
+async function coach(){
+  const s=S.speak, it=s.qs[s.i], m=SPEAK_MODES[s.mode];
+  if(!aiAvailable() || (s.coach && s.coach.loading)) return;
+  s.coach={loading:true}; render();
+  const said = s.heard ? `"${s.heard}"` : '(nothing captured)';
+  const how = s.src==='mic' ? 'a browser speech recognizer (it may auto-correct toward real words, so a mismatch usually means a sound was off)' : 'typed or keyboard-dictated text';
+  const alts = s.alts.length>1 ? `\nOther recognizer guesses: ${s.alts.slice(1).map(a=>`"${a.t}"`).join(', ')}` : '';
+  const task = m.ansLang==='es'
+    ? `Compare what was captured to the target syllable by syllable. Name the specific sounds an English speaker most likely got wrong to produce that difference (pure vowels a/e/i/o/u, tapped r vs rolled rr, silent h, j and soft g as an English h, ll/y, ñ, d softening, b/v, stress on the right syllable). If the capture matches the target, say so and give one refinement for sounding natural; note that a transcript can't fully judge accent.`
+    : `Judge whether the English answer captures the meaning of the Spanish phrase (wording can differ). If wrong, explain the meaning and the Spanish word that tripped them up.`;
+  const prompt = `You are a Spanish coach for Texas police academy cadets (TCOLE Basic Peace Officer Course, Chapter 26). Keep it brief and practical for field use.
+Drill: ${m.label}.
+Target Spanish: "${it.es}"
+English meaning: "${it.en}"
+Accepted variants: ${[it.es,...it.a].join(' | ')}
+The cadet answered in ${m.ansLang==='es'?'Spanish':'English'}. Captured from ${how}: ${said}${alts}
+${task}
+Reply with only JSON: {"verdict":"correct"|"close"|"incorrect","score":0-100,"summary":"one sentence","tips":["up to 3 short tips"],"say_it":"English-style phonetic respelling of the target with the stressed syllable in CAPS, syllables joined by hyphens","memory_hook":"short mnemonic or empty string"}`;
+  try{
+    const r = await sample.json(prompt, {modelTier:'quick'});
+    if(S.speak.qs[S.speak.i]!==it) return;
+    s.coach = (r && typeof r==='object') ? {r} : {error:'The coach’s reply came back garbled. Tap Coach me to try again.'};
+  }catch(e){ if(S.speak.qs[S.speak.i]!==it) return; const msg=aiErr(e); s.coach = msg?{error:msg}:null; }
+  if(tab==='speak') render();
+}
+function speakDone(){
+  const s=S.speak, n=s.results.length, c=s.results.filter(r=>r.ok).length, missed=s.results.filter(r=>!r.ok).map(r=>r.item);
+  view.innerHTML = `
+  <h2>Drill complete</h2>
+  <div class="panel">
+    <div class="row" style="gap:20px;align-items:flex-end"><div class="score">${c}/${n}</div><p class="muted small">${esc(SPEAK_MODES[s.mode].label)}</p></div>
+    <div class="row">
+      ${missed.length?`<button class="btn primary" id="redoMissed">Drill the ${missed.length} missed again</button>`:''}
+      <button class="btn" id="newDrill">New drill</button>
+    </div>
+  </div>`;
+  const rm=view.querySelector('#redoMissed'); if(rm) rm.onclick=()=>{ const l=s.len; s.len=0; startSpeak(missed); s.len=l; };
+  view.querySelector('#newDrill').onclick=()=>{ s.phase='setup'; render(); };
+}
+
+/* ============ PROGRESS ============ */
+function renderProgress(){
+  const all = ITEMS.filter(it=>settings.calo || !it.calo);
+  const units = Object.entries(UNITS).map(([u,name])=>{
+    const its=all.filter(x=>x.u===u); const m=its.filter(x=>status(x)==='mastered').length; const sn=its.filter(x=>['seen','weak'].includes(status(x))).length;
+    return {u,name,total:its.length,m,sn};
+  });
+  const weak = all.filter(x=>status(x)==='weak').sort((a,b)=>(stats[b.id].w-stats[b.id].c)-(stats[a.id].w-stats[a.id].c));
+  const tot = all.length, mast = all.filter(x=>status(x)==='mastered').length;
+  view.innerHTML = `
+  <div class="row between"><h2>Your progress</h2><span class="small muted">Saved on this device only</span></div>
+  <div class="panel">
+    <div class="row" style="gap:20px;align-items:flex-end"><div class="score tabnum">${mast}</div><p class="muted">of ${tot} terms mastered<br><span class="small">Mastered = answered right at least twice, most recently right.</span></p></div>
+    <div class="legend"><span style="--c:var(--good)">Mastered</span><span style="--c:var(--accent)">Practiced</span><span style="--c:var(--line)">Not started</span></div>
+    ${units.map(x=>`<div class="unitrow"><span><span class="mono small muted">${x.u}</span> ${esc(x.name)}</span><span class="small muted tabnum">${x.m}/${x.total}</span>
+      <div class="bar" role="img" aria-label="${x.m} mastered, ${x.sn} practiced of ${x.total}"><i class="m" style="width:${x.total?x.m/x.total*100:0}%"></i><i class="s" style="width:${x.total?x.sn/x.total*100:0}%"></i></div></div>`).join('')}
+  </div>
+  <div class="panel">
+    <div class="row between"><h3>Needs work (${weak.length})</h3>${weak.length?`<button class="btn primary" id="drillWeak">Test these</button>`:''}</div>
+    ${weak.length?`<div class="tablewrap"><table><thead><tr><th>English</th><th>Spanish</th><th class="tabnum">Right / wrong</th></tr></thead><tbody>
+      ${weak.slice(0,40).map(it=>`<tr><td>${esc(it.en)}</td><td><strong>${esc(it.es)}</strong></td><td class="tabnum">${stats[it.id].c} / ${stats[it.id].w}</td></tr>`).join('')}</tbody></table></div>`
+      :`<p class="empty">Nothing flagged yet. Terms you miss in tests and drills show up here.</p>`}
+  </div>
+  <div class="panel">
+    <h3>Reset</h3>
+    <div class="row" id="resetRow"><button class="btn" id="resetBtn">Clear my progress</button></div>
+  </div>`;
+  const dw=view.querySelector('#drillWeak'); if(dw) dw.onclick=()=>{ tab='test'; store.set('tab',tab); const t=S.test, l=t.len; t.len=0; startTest(weak); t.len=l; };
+  view.querySelector('#resetBtn').onclick=()=>{
+    document.getElementById('resetRow').innerHTML=`<span class="small">Erase all progress on this device?</span><button class="btn primary" id="resetYes">Erase</button><button class="btn" id="resetNo">Cancel</button>`;
+    document.getElementById('resetYes').onclick=()=>{ stats={}; store.set('stats',stats); render(); };
+    document.getElementById('resetNo').onclick=()=>render();
+  };
+}
+
+renderDeckBar(); loadVoices(); render();
+</script>
+
+</body>
+</html>
